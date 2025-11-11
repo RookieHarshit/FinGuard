@@ -22,6 +22,9 @@ dependencies = [
     "opentelemetry-instrumentation-fastapi (>=0.59b0,<0.60)",
     "httpx (==0.27.0)",
     "psycopg2-binary (>=2.9.11,<3.0.0)",
+    "sqlalchemy (>=2.0.44,<3.0.0)",
+    "dotenv (>=0.9.9,<0.10.0)",
+    "pydantic-settings (>=2.12.0,<3.0.0)",
 ]
 
 [tool.poetry]
