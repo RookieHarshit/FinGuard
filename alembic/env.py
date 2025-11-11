@@ -15,7 +15,7 @@ load_dotenv()
 config = context.config
 
 # Replace the static URL with the one from .env
-database_url = os.getenv("DATABASE_URL")
+database_url = os.getenv("settings.DATABASE_URL")
 if database_url:
     config.set_main_option("sqlalchemy.url", database_url)
 else:
