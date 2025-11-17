@@ -1,5 +1,5 @@
 from fastapi import FastAPI 
-from app.api.v1 import routes_test
+from app.api.v1.router import router as v1_router
 
 app = FastAPI(title="FinGuard API")
 
@@ -7,4 +7,4 @@ app = FastAPI(title="FinGuard API")
 def health_check():
     return {"status":"ok"}
 
-app.include_router(routes_test.router, prefix="/v1")
+app.include_router(v1_router)
