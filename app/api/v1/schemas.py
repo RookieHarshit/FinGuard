@@ -24,7 +24,7 @@ class TransactionCreate(BaseModel):
     receiver_account: UUID
     amount: Decimal
     currency: CurrencyCode
-    metadata: Optional[dict] = None
+    additional_metadata: Optional[dict] = None
 
 
 class TransactionOut(BaseModel):
