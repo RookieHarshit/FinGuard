@@ -1,27 +1,38 @@
 from sqlalchemy import select
-from sqlalchemy.orm import Session
-from app.db.models import Transaction, Account, LedgerEntry, TransactionStatus
+from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 from uuid import uuid4
 
+from app.db.models import Transaction, Account, LedgerEntry, TransactionStatus
 
-def create_transaction(db: Session, payload):
-    # Step 1 — Check if idempotency_key already exists
-    existing_tx = db.execute(
-        select(Transaction).where(Transaction.idempotency_key == payload.idempotency_key)
+
+async def create_transaction(db: AsyncSession, payload):
+    # Step 1 — Check idempotency_key
+    existing_tx = (
+        await db.execute(
+            select(Transaction).where(Transaction.idempotency_key == payload.idempotency_key)
+        )
     ).scalar_one_or_none()
 
     if existing_tx:
         return existing_tx
 
     # Step 2 — Start DB transaction
-    with db.begin():
-        sender = db.execute(
-            select(Account).where(Account.id == payload.sender_account).with_for_update()
+    async with db.begin():
+        sender = (
+            await db.execute(
+                select(Account)
+                .where(Account.id == payload.sender_account)
+                .with_for_update()
+            )
         ).scalar_one_or_none()
 
-        receiver = db.execute(
-            select(Account).where(Account.id == payload.receiver_account).with_for_update()
+        receiver = (
+            await db.execute(
+                select(Account)
+                .where(Account.id == payload.receiver_account)
+                .with_for_update()
+            )
         ).scalar_one_or_none()
 
         if not sender:
@@ -32,8 +43,8 @@ def create_transaction(db: Session, payload):
 
         if sender.balance < payload.amount:
             raise HTTPException(status_code=400, detail="Insufficient funds")
-
-        # Step 3 — Create transaction
+        
+ # Step 3 — Create transaction
         tx = Transaction(
             id=uuid4(),
             idempotency_key=payload.idempotency_key,
@@ -44,28 +55,34 @@ def create_transaction(db: Session, payload):
             metadata=payload.metadata,
             status=TransactionStatus.PENDING,
         )
+
         db.add(tx)
 
-        # Step 4 — Apply ledger updates
-        sender.balance -= payload.amount
-        receiver.balance += payload.amount
+        
+        db.add(
+            LedgerEntry(
+                account_id=sender.id,
+                transaction_id=tx.id,
+                entry_type="DEBIT",
+                amount=payload.amount,
+                balance_after=sender.balance
+            )
+        )
 
-        db.add(LedgerEntry(
-            account_id=sender.id,
-            transaction_id=tx.id,
-            entry_type="DEBIT",
-            amount=payload.amount,
-            balance_after=sender.balance
-        ))
-        db.add(LedgerEntry(
-            account_id=receiver.id,
-            transaction_id=tx.id,
-            entry_type="CREDIT",
-            amount=payload.amount,
-            balance_after=receiver.balance
-        ))
+        db.add(
+            LedgerEntry(
+                account_id=receiver.id,
+                transaction_id=tx.id,
+                entry_type="CREDIT",
+                amount=payload.amount,
+                balance_after=receiver.balance
+            )
+        )
 
         tx.status = TransactionStatus.SUCCESS
         db.add(tx)
 
     return tx
+
+
+
