@@ -29,12 +29,14 @@ async def create_account(
     current_user: Annotated[User, Depends(get_current_user)]
 ):
     
+    # Validate that the currency is allowed.
     if account_data.currency.upper() not in CurrencyCode.__members__:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Unsupported currency. Supported: {', '.join(CurrencyCode)}"
         )
     
+    # Ensure the user doesn't already have an account in this currency.
     try:
         existing_account = db.execute(
             select(Account).where(
