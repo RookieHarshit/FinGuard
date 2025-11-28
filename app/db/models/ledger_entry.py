@@ -1,23 +1,16 @@
 from __future__ import annotations
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from uuid import uuid4
 from datetime import datetime
 
-from decimal import Decimal 
-from sqlalchemy import (
-    Numeric, Enum, ForeignKey,TIMESTAMP
-)
+from decimal import Decimal
+from sqlalchemy import Numeric, Enum, ForeignKey, TIMESTAMP
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import (
-    Mapped, mapped_column, relationship
-)
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.db.base import Base
-from app.db.models.account import Account
-from app.db.models.transaction import Transaction
 from app.db.enums import LedgerEntryType
-
 
 class LedgerEntry(Base):
     __tablename__ = "ledger_entries"

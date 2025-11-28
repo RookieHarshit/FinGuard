@@ -10,7 +10,6 @@ from sqlalchemy.orm import (
 )
 
 from app.db.base import Base
-from app.db.models.account import Account
 
 from sqlalchemy.sql import func
 

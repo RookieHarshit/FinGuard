@@ -15,8 +15,6 @@ from sqlalchemy.orm import (
 from sqlalchemy.sql import func
 
 from app.db.base import Base
-from app.db.models.account import Account
-from app.db.models.ledger_entry import LedgerEntry
 from app.db.enums import CurrencyCode, TransactionStatus
 
 
