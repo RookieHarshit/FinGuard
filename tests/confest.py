@@ -64,7 +64,7 @@ def postgres_container():
 
     yield container
 
-# DATABASE ENGINE (async)
+# Database Engine (async)
 async def test_engine(postgres_container):
     test_db_url = (
         "postgresql+asyncpg://test:test@localhost:5433/test_db"
@@ -85,3 +85,16 @@ async def test_engine(postgres_container):
     yield engine
 
     await engine.dispose()
+
+# Async test DB sessions.
+async def db_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
+    async_session = sessionmaker(
+        bind=test_engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+        autoflush=False,
+        autocommit=False,
+    )
+
+    async with async_session() as session:
+        yield session    
