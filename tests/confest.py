@@ -16,3 +16,10 @@ from fastapi import FastAPI
 from app.core.config import settings
 from app.db.models import Base 
 from app.main import app as fastapi_app  
+
+
+@pytest.fixture(scope="session")
+def event_loop():
+    loop = asyncio.new_event_loop()
+    yield loop
+    loop.close()
