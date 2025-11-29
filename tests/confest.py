@@ -23,3 +23,21 @@ def event_loop():
     loop = asyncio.new_event_loop()
     yield loop
     loop.close()
+
+# Temporary Postgres Via Docker
+@pytest.fixture(scope="session")
+def postgres_container():
+    client = docker.from_env()
+
+    container = client.containers.run(
+        "postgres:16-alpine",
+        name="test-postgres",
+        environment={
+            "POSTGRES_USER": "test",
+            "POSTGRES_PASSWORD": "test",
+            "POSTGRES_DB": "test_db",
+        },
+        ports={"5432/tcp": 5433},   # host 5433 → container 5432
+        detach=True,
+        auto_remove=True,
+    )
