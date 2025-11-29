@@ -20,6 +20,12 @@ TEST_DATABASE_URL = (
     else "postgresql+asyncpg://postgres:postgres@localhost:5433/testdb"
 )
 
+@pytest.fixture(scope="session")
+def event_loop():
+    loop = asyncio.new_event_loop()
+    yield loop
+    loop.close()
+
 
 # FastAPI App + Override get_db
 @pytest.fixture()
