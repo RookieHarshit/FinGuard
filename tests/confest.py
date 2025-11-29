@@ -117,3 +117,13 @@ def override_app(db_session):
 
     # Cleanup overrides after test
     app.dependency_overrides.clear()
+
+# async test client using httpx
+@pytest.fixture()
+async def client(override_app: FastAPI):
+    async with AsyncClient(
+        app=override_app,
+        base_url="http://test",
+        follow_redirects=True,
+    ) as ac:
+        yield ac
