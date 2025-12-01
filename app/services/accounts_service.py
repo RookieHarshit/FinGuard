@@ -12,31 +12,34 @@ from fastapi import HTTPException, status
 class AccountService:
     async def create_account(self, db, user, payload):
         # Validate currency
-        if payload.currency.upper() not in CurrencyCode.__members__:
+        currency = payload.currency.upper()
+
+        if currency not in CurrencyCode.__members__:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Unsupported currency. Supported: {', '.join(CurrencyCode)}"
             )
 
         # Check existing
-        existing = db.execute(
+        result = await db.execute(
             select(Account).where(
                 Account.user_id == user.id,
-                Account.currency == payload.currency.upper()
+                Account.currency == currency
             )
-        ).scalar_one_or_none()
+        )
+        existing = result.scalar_one_or_none()
 
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=f"User already has a {payload.currency.upper()} account"
+                detail=f"User already has a {currency} account"
             )
 
         # Create account
         new_acc = Account(
             id=uuid4(),
             user_id=user.id,
-            currency=payload.currency.upper(),
+            currency=currency,
             balance=Decimal("0"),
             status="ACTIVE"
         )
@@ -51,7 +54,7 @@ class AccountService:
             object_type="ACCOUNT",
             object_id=new_acc.id,
             payload={
-                "currency": new_acc.currency,
+                "currency": currency,
                 "initial_balance": "0"
             }
         )
@@ -59,10 +62,10 @@ class AccountService:
 
         # Commit
         try:
-            db.commit()
-            db.refresh(new_acc)
+            await db.commit()
+            await db.refresh(new_acc)
         except IntegrityError:
-            db.rollback()
+            await db.rollback()
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Database integrity error"
@@ -71,5 +74,4 @@ class AccountService:
         return new_acc
 
 
-# Create global instance
 account_service = AccountService()
