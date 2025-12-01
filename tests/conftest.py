@@ -14,7 +14,7 @@ from httpx import AsyncClient
 from fastapi import FastAPI
 
 from app.core.config import settings
-from app.db.models import Base 
+from app.db.base import Base 
 from app.main import app as fastapi_app  
 
 
