@@ -35,4 +35,4 @@ class UserKYC(Base):
     verified_at: Mapped[datetime|None] = mapped_column(DateTime(timezone=True))
     verified_by: Mapped[str|None] = mapped_column(String(100))
 
-user: Mapped["User"] = relationship(back_populates="kyc")  # pyright: ignore
+    user: Mapped["User"] = relationship(back_populates="kyc")  # pyright: ignore
