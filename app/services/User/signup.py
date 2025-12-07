@@ -9,7 +9,7 @@ from app.schemas.User.signup import SignupRequestOTP
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-async def create_user(data: SignupRequestOTP, db: AsyncSession) -> User:
+async def request_otp(data: SignupRequestOTP, db: AsyncSession) -> User:
 
     stmt = select(User).where(
         (User.phone == data.phone) 
@@ -20,5 +20,7 @@ async def create_user(data: SignupRequestOTP, db: AsyncSession) -> User:
     if existing_user:
         raise ValueError("User with this phone number already exists")
     
+
     
+
 
