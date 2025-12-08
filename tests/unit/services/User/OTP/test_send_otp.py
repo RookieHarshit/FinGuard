@@ -2,7 +2,10 @@ import pytest
 from unittest.mock import AsyncMock, patch
 from app.services.User.otp_service import send_otp 
 
-OTP_EXPIRY = 300 
+
+OTP_EXPIRY = 300       
+OTP_MAX_REQUESTS = 3   
+
 @pytest.mark.asyncio
 async def test_send_otp_first_request():
     phone = "9999999999"
@@ -26,9 +29,6 @@ async def test_send_otp_first_request():
                 f"otp:{phone}", "123456", ex=OTP_EXPIRY
             )
 
-
-OTP_EXPIRY = 300       
-OTP_MAX_REQUESTS = 3   
 
 @pytest.mark.asyncio
 async def test_send_otp_subsequent_request_within_limit():
@@ -54,3 +54,24 @@ async def test_send_otp_subsequent_request_within_limit():
                 "654321",
                 ex=OTP_EXPIRY
             )
+
+
+@pytest.mark.asyncio
+async def test_send_otp_exceeds_rate_limit():
+    phone = "9999999999"
+
+    mock_redis = AsyncMock()
+    mock_redis.incr.return_value = OTP_MAX_REQUESTS + 1  
+
+    with patch("app.services.User.otp_service.generate_otp", return_value="111111"):
+        with patch("app.services.User.otp_service.redis_client", mock_redis):
+
+            with pytest.raises(Exception) as exc:
+                await send_otp(phone)
+
+            assert "Too many OTP requests" in str(exc.value)
+
+            mock_redis.incr.assert_called_once_with(f"otp_count:{phone}")
+
+            mock_redis.expire.assert_not_called()
+            mock_redis.set.assert_not_called()
