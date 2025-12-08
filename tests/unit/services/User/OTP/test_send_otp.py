@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, patch
-from app.services.User.otp_service import send_otp 
+from app.services.User.otp_service import send_otp, generate_otp
 
 
 OTP_EXPIRY = 300       
@@ -75,3 +75,10 @@ async def test_send_otp_exceeds_rate_limit():
 
             mock_redis.expire.assert_not_called()
             mock_redis.set.assert_not_called()
+
+def test_generate_otp_format():
+    otp = generate_otp()
+
+    assert isinstance(otp, str)
+    assert otp.isdigit()
+    assert len(otp) == 6
