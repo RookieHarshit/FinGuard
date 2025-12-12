@@ -12,6 +12,21 @@ OTP_LOCKOUT_TTL = 60 * 60
 class OTPRateLimitExceeded(Exception):
     pass
 
+class OTPException(Exception):
+    """Base OTP exception."""
+
+class OTPTooManyRequests(OTPException):
+    """Raised when user requests OTP too frequently."""
+
+class OTPLocked(OTPException):
+    """Raised when phone is temporarily locked due to too many failed verifications."""
+
+class OTPExpired(OTPException):
+    """Raised when OTP has expired."""
+
+class OTPMismatch(OTPException):
+    """Raised when OTP does not match."""
+
 async def send_otp(phone: str):
     #Check rate limit
     count_key = f"otp_count:{phone}"
