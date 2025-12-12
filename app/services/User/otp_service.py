@@ -4,6 +4,9 @@ from app.core.securities import generate_otp
 OTP_EXPIRY = 300 
 OTP_MAX_REQUESTS = 3
 
+class OTPRateLimitExceeded(Exception):
+    pass
+
 async def send_otp(phone: str):
     #Check rate limit
     count_key = f"otp_count:{phone}"
@@ -13,7 +16,7 @@ async def send_otp(phone: str):
         await redis_client.expire(count_key, OTP_EXPIRY)
 
     if count > OTP_MAX_REQUESTS:
-        raise Exception("Too many OTP requests")
+        raise OTPRateLimitExceeded("Too many OTP requests, Try again later")
 
     # Generate and store OTP
     otp = generate_otp(6)
