@@ -1,8 +1,13 @@
 from app.core.redis import redis_client
 from app.core.securities import generate_otp
+from typing import Optional
 
 OTP_EXPIRY = 300 
 OTP_MAX_REQUESTS = 3
+
+OTP_VERIFY_MAX_ATTEMPTS = 5         
+OTP_VERIFY_WINDOW = 15 * 60          
+OTP_LOCKOUT_TTL = 60 * 60            
 
 class OTPRateLimitExceeded(Exception):
     pass
