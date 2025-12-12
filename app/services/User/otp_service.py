@@ -1,5 +1,5 @@
 from app.core.redis import redis_client
-import random
+from app.core.securities import generate_otp
 
 OTP_EXPIRY = 300 
 OTP_MAX_REQUESTS = 3
@@ -16,7 +16,7 @@ async def send_otp(phone: str):
         raise Exception("Too many OTP requests")
 
     # Generate and store OTP
-    otp = generate_otp()
+    otp = generate_otp(6)
     otp_key = f"otp:{phone}"
     await redis_client.set(otp_key, otp, ex=OTP_EXPIRY)
 
@@ -24,7 +24,6 @@ async def send_otp(phone: str):
     print(f"SMS to {phone}: {otp}")  # replace with real SMS API
 
     return True
-
 
 async def verify_otp(phone: str, user_otp: str):
     otp_key = f"otp:{phone}"
