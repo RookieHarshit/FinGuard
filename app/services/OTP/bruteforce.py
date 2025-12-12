@@ -14,3 +14,10 @@ async def _increment_failed_attempts(phone: str) -> int:
 
     return attempts
 
+async def _clear_failed_attempts(phone: str) -> None:
+    """Clear attempts and lock keys after successful verification."""
+    attempts_key = f"otp_failed:{phone}"
+    lock_key = f"otp_locked:{phone}"
+    # delete both keys if they exist
+    await redis_client.delete(attempts_key)
+    await redis_client.delete(lock_key)
