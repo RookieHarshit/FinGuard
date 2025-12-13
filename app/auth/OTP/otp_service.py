@@ -14,12 +14,11 @@ from app.auth.OTP.otp_exceptions import (
     OTPMismatch,
 )
 
-OTP_EXPIRY: Final[int] = 300
-OTP_MAX_REQUESTS: Final[int] = 3
-
-OTP_VERIFY_MAX_ATTEMPTS: Final[int] = 5
-OTP_VERIFY_WINDOW: Final[int] = 15 * 60
-OTP_LOCKOUT_TTL: Final[int] = 60 * 60
+from app.core.security.otp import (
+    OTP_EXPIRY,
+    OTP_MAX_REQUESTS,
+    OTP_VERIFY_MAX_ATTEMPTS,
+)
 
 
 async def send_otp(phone: str) -> bool:
