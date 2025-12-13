@@ -2,8 +2,8 @@ from app.core.redis import redis_client
 from app.core.securities import generate_otp
 from typing import Optional
 
-from app.services.OTP.bruteforce import is_locked, _increment_failed_attempts, _clear_failed_attempts
-from app.services.OTP.otp_exceptions import OTPException, OTPTooManyRequests, OTPRateLimitExceeded, OTPLocked, OTPExpired, OTPMismatch
+from app.auth.OTP.bruteforce import is_locked, _increment_failed_attempts, _clear_failed_attempts
+from app.auth.OTP.otp_exceptions import OTPRateLimitExceeded, OTPLocked, OTPExpired, OTPMismatch
 
 OTP_EXPIRY = 300 
 OTP_MAX_REQUESTS = 3
