@@ -33,3 +33,33 @@ async def test_verify_otp_locked_phone_raises(mocker):
         await verify_otp(phone, "123456")
 
     redis_get.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_verify_otp_expired_or_missing(mocker):
+    phone = "+919876543210"
+
+    mocker.patch(
+        "app.auth.OTP.otp_service.normalize_phone",
+        return_value=phone
+    )
+
+    mocker.patch(
+        "app.auth.OTP.otp_service.is_locked",
+        new=AsyncMock(return_value=False)
+    )
+
+    mocker.patch(
+        "app.auth.OTP.otp_service.redis_client.get",
+        new=AsyncMock(return_value=None)
+    )
+
+    increment_attempts = mocker.patch(
+        "app.auth.OTP.otp_service._increment_failed_attempts",
+        new=AsyncMock(return_value=1)
+    )
+
+    with pytest.raises(OTPExpired):
+        await verify_otp(phone, "123456")
+
+    increment_attempts.assert_called_once_with(phone)
