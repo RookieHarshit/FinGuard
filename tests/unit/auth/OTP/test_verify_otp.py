@@ -63,3 +63,34 @@ async def test_verify_otp_expired_or_missing(mocker):
         await verify_otp(phone, "123456")
 
     increment_attempts.assert_called_once_with(phone)
+
+@pytest.mark.asyncio
+async def test_verify_otp_incorrect_otp(mocker):
+    phone = "+919876543210"
+    saved_otp = "111111"
+
+    mocker.patch(
+        "app.auth.OTP.otp_service.normalize_phone",
+        return_value=phone
+    )
+
+    mocker.patch(
+        "app.auth.OTP.otp_service.is_locked",
+        new=AsyncMock(return_value=False)
+    )
+
+    mocker.patch(
+        "app.auth.OTP.otp_service.redis_client.get",
+        new=AsyncMock(return_value=saved_otp)
+    )
+
+    increment_attempts = mocker.patch(
+        "app.auth.OTP.otp_service._increment_failed_attempts",
+        new=AsyncMock(return_value=2)
+    )
+
+    with pytest.raises(OTPMismatch) as exc:
+        await verify_otp(phone, "999999")
+
+    assert "Attempt 2" in str(exc.value)
+    increment_attempts.assert_called_once_with(phone)
