@@ -20,3 +20,24 @@ def _normalize_otp(otp: str) -> str:
         raise ValueError("OTP must contain only digits")
 
     return otp
+
+def hash_otp(*, otp: str, identifier: str) -> str:
+    """
+    Hash an OTP using HMAC-SHA256.
+
+    identifier:
+        A stable, user-specific value (e.g. phone number or user_id).
+        Prevents OTP reuse across users.
+    """
+    otp = _normalize_otp(otp)
+
+    message = f"{identifier}:{otp}".encode("utf-8")
+    key = OTP_SECRET_KEY.encode("utf-8")
+
+    digest = hmac.new(
+        key=key,
+        msg=message,
+        digestmod=hashlib.sha256,
+    ).hexdigest()
+
+    return digest
