@@ -6,6 +6,8 @@ from app.core.Utils.phone import normalize_phone
 from app.core.security.masking import _mask_phone
 from app.core.logging import get_logger
 from app.auth.OTP.rate_limit import enforce_otp_rate_limit
+from app.core.security.hashing import hash_otp
+
 from app.auth.OTP.bruteforce import (
     is_locked,
     _increment_failed_attempts,
@@ -56,12 +58,16 @@ async def send_otp(phone: str) -> bool:
         raise
 
     otp: str = generate_otp(6)
+    otp_hash: str = hash_otp(
+        otp=otp,
+        identifier=phone,
+    )    
     otp_key = f"otp:{phone}"
 
-    await redis_client.set(otp_key, otp, ex=OTP_EXPIRY)
+    await redis_client.set(otp_key, otp_hash, ex=OTP_EXPIRY)
 
     sms_provider = ConsoleSMSProvider()
-    await sms_provider.send(phone, "Your OTP is ******")
+    await sms_provider.send(phone, f"Your OTP is {otp}")
 
     logger.info(
         "OTP generated and sent successfully",
