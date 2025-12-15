@@ -16,3 +16,16 @@ pwd_context = CryptContext(
     argon2__hash_len=32,
     argon2__salt_size=16,
 )
+
+
+class PasswordHasher(Hasher):
+
+    def __init__(self):
+        self._pepper = get_pepper()
+
+    def hash(self, password: str) -> str:
+        if not password:
+            raise HashingError("Password cannot be empty")
+
+        peppered = apply_pepper(password, self._pepper)
+        return pwd_context.hash(peppered)
