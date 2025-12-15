@@ -24,7 +24,7 @@ class PasswordHasher(Hasher):
         self._pepper = get_pepper()
 
     def hash(self, password: str) -> str:
-        
+
         if not password:
             raise HashingError("Password cannot be empty")
 
@@ -41,3 +41,7 @@ class PasswordHasher(Hasher):
             return pwd_context.verify(peppered, hashed)
         except UnknownHashError:
             return False
+        
+        
+    def needs_rehash(self, hashed: str) -> bool:
+        return pwd_context.needs_update(hashed)
