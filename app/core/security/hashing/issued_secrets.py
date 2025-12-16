@@ -16,3 +16,14 @@ _secret_context: Final = CryptContext(
     argon2__hash_len=32,
     argon2__salt_size=16,
 )
+
+def hash_secret(secret: str) -> str:
+    """
+    Hash a server-issued secret (refresh token, device key, backup code).
+    Uses Argon2id + pepper.
+    """
+    if not secret:
+        raise ValueError("Secret cannot be empty")
+
+    peppered = f"{secret}::{get_pepper()}"
+    return _secret_context.hash(peppered)
