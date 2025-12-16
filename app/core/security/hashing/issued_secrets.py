@@ -27,3 +27,17 @@ def hash_secret(secret: str) -> str:
 
     peppered = f"{secret}::{get_pepper()}"
     return _secret_context.hash(peppered)
+
+def verify_secret(secret: str, hashed: str) -> bool:
+    """
+    Verify a server-issued secret against a stored hash.
+    Returns True if valid, False otherwise.
+    """
+    if not secret or not hashed:
+        return False
+
+    try:
+        peppered = f"{secret}::{get_pepper()}"
+        return _secret_context.verify(peppered, hashed)
+    except UnknownHashError:
+        return False
