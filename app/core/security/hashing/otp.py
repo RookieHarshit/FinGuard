@@ -1,3 +1,17 @@
+"""
+OTP hashing and verification utilities for Fintech authentication.
+
+This module provides functions for securely hashing and verifying
+one-time passwords (OTPs) using HMAC-SHA256. OTPs are tied to a
+user-specific identifier to prevent reuse across accounts.
+
+Security notes:
+- OTPs are expected to be numeric and normalized before hashing.
+- A global server-side secret key (OTP_SECRET_KEY) is required and
+  must be set at runtime. The application fails hard if it is missing.
+- Verification is performed in constant-time to mitigate timing attacks.
+"""
+
 from __future__ import annotations
 
 import hmac
@@ -10,9 +24,21 @@ OTP_SECRET_KEY: Final[str | None] = os.getenv("OTP_SECRET_KEY")
 if not OTP_SECRET_KEY:
     raise RuntimeError("OTP_SECRET_KEY is not set")
 
+
 def _normalize_otp(otp: str) -> str:
     """
-    Normalize OTP input to avoid subtle mismatches.
+    Normalize OTP input to prevent subtle mismatches.
+
+    Strips whitespace and ensures the OTP contains only digits.
+
+    Args:
+        otp: The raw OTP input.
+
+    Returns:
+        The normalized OTP string.
+
+    Raises:
+        ValueError: If the OTP contains non-numeric characters.
     """
     otp = otp.strip()
 
@@ -21,13 +47,23 @@ def _normalize_otp(otp: str) -> str:
 
     return otp
 
+
 def hash_otp(*, otp: str, identifier: str) -> str:
     """
-    Hash an OTP using HMAC-SHA256.
+    Compute a secure HMAC-SHA256 hash of an OTP.
 
-    identifier:
-        A stable, user-specific value (e.g. phone number or user_id).
-        Prevents OTP reuse across users.
+    OTPs are combined with a stable user-specific identifier to prevent
+    OTP reuse across users and to bind them to a particular account.
+
+    Args:
+        otp: The raw OTP input.
+        identifier: A stable, user-specific value (e.g., phone number or user ID).
+
+    Returns:
+        A hexadecimal string representing the HMAC-SHA256 hash of the OTP.
+
+    Raises:
+        ValueError: If OTP normalization fails.
     """
     otp = _normalize_otp(otp)
 
@@ -42,6 +78,7 @@ def hash_otp(*, otp: str, identifier: str) -> str:
 
     return digest
 
+
 def verify_otp(
     *,
     otp: str,
@@ -49,7 +86,19 @@ def verify_otp(
     stored_hash: str,
 ) -> bool:
     """
-    Constant-time OTP verification.
+    Verify an OTP against a stored HMAC-SHA256 hash in constant time.
+
+    Args:
+        otp: The OTP provided by the user.
+        identifier: The same user-specific identifier used during hashing.
+        stored_hash: The previously computed OTP hash to verify against.
+
+    Returns:
+        True if the OTP is valid and matches the stored hash, False otherwise.
+
+    Notes:
+        - Returns False for any invalid input or normalization errors.
+        - Uses hmac.compare_digest to prevent timing attacks.
     """
     if not otp or not stored_hash:
         return False
