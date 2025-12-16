@@ -39,3 +39,7 @@ def verify_pin(pin: str, pin_hash: str) -> bool:
         return _pin_context.verify(peppered, pin_hash)
     except UnknownHashError:
         return False
+    
+def needs_rehash(pin_hash: str) -> bool:
+    return _pin_context.needs_update(pin_hash)
+
