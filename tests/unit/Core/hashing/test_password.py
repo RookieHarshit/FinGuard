@@ -48,7 +48,22 @@ class TestPasswordHasherInitialization:
         assert len(calls) == 1
 
 
+class TestPasswordHasherArgon2Configuration:
+    def test_uses_argon2id_variant(self):
+        hash_ = pwd_context.hash("password123")
+        assert hash_.startswith("$argon2id$")
 
+    def test_memory_cost_configured_correctly(self):
+        hash_ = pwd_context.hash("password123")
+        assert "m=65536" in hash_
+
+    def test_time_cost_configured_correctly(self):
+        hash_ = pwd_context.hash("password123")
+        assert "t=3" in hash_
+
+    def test_parallelism_configured_correctly(self):
+        hash_ = pwd_context.hash("password123")
+        assert "p=1" in hash_
 
 
 
