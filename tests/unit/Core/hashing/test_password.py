@@ -66,7 +66,61 @@ class TestPasswordHasherArgon2Configuration:
         assert "p=1" in hash_
 
 
+class TestPasswordHasherHash:
+    @pytest.fixture
+    def hasher(self):
+        return PasswordHasher()
 
+    def test_hash_returns_non_empty_string(self, hasher):
+        hashed = hasher.hash("password123")
+
+        assert isinstance(hashed, str)
+        assert hashed != ""
+
+    def test_hash_produces_argon2id_format(self, hasher):
+        hashed = hasher.hash("password123")
+
+        assert hashed.startswith("$argon2id$")
+
+    def test_same_password_produces_unique_hashes(self, hasher):
+        hash1 = hasher.hash("password123")
+        hash2 = hasher.hash("password123")
+
+        assert hash1 != hash2
+
+    def test_hashed_password_can_be_verified(self, hasher):
+        hashed = hasher.hash("password123")
+
+        assert hasher.verify("password123", hashed)
+
+    def test_wrong_password_does_not_verify(self, hasher):
+        hashed = hasher.hash("password123")
+
+        assert not hasher.verify("wrong-password", hashed)
+
+    def test_hash_raises_error_for_empty_password(self, hasher):
+        with pytest.raises(HashingError, match="Password cannot be empty"):
+            hasher.hash("")
+
+    def test_hash_raises_error_for_none_password(self, hasher):
+        with pytest.raises(HashingError, match="Password cannot be empty"):
+            hasher.hash(None)
+
+    @pytest.mark.parametrize(
+        "password",
+        [
+            "simple",
+            "with spaces and special !@#$%",
+            "unicode_测试_مرحبا_🔒",
+            "very" * 100,
+            "with\nnewlines\tand\ttabs",
+        ],
+    )
+    def test_hash_handles_various_password_formats(self, hasher, password):
+        hashed = hasher.hash(password)
+
+        assert isinstance(hashed, str)
+        assert hashed.startswith("$argon2id$")
 
 
 
