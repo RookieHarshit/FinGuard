@@ -21,3 +21,8 @@ class LedgerEntryType(str, PyEnum):
     DEBIT = "DEBIT"
     CREDIT = "CREDIT"
 
+class PreUserOnboardingState(str, PyEnum):
+    OTP_SENT = "OTP_SENT"
+    OTP_VERIFIED = "OTP_VERIFIED"
+    PROFILE_DONE = "PROFILE_DONE"
+    READY_FOR_USER = "READY_FOR_USER"
