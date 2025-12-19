@@ -1,9 +1,16 @@
-from app.core.Utils.phone import normalize_phone
-from app.schemas.User.signup import PhoneSubmitResponse
-from app.core.security.rate_limit import enforce_otp_rate_limit
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.auth.OTP.service import issue_otp
-from app.schemas.User.signup import OTPVerifyResponse
+from app.core.Utils.phone import normalize_phone
+from app.core.security.rate_limit import enforce_otp_rate_limit
+from app.domain.user.status import OnboardingState
+from app.repository.user.pre_user import create_preuser
+from app.schemas.User.signup import (
+    PhoneSubmitResponse,
+    OTPVerifyResponse,
+)
 from app.services.OTP.verify_otp import verify_otp_flow
+
 
 class UserOnboarding:
 
@@ -32,9 +39,6 @@ class UserOnboarding:
             status="OTP_SENT",
         )
 
-
-class UserOnboarding:
-
     @staticmethod
     async def verify_otp(phone: str, otp: str) -> OTPVerifyResponse:
         """
@@ -47,4 +51,31 @@ class UserOnboarding:
         return OTPVerifyResponse(
             phone=phone,
             status="OTP_VERIFIED",
+        )
+    
+    @staticmethod
+    async def verify_otp(
+        *,
+        db: AsyncSession,
+        phone: str,
+        otp: str,
+    ) -> OTPVerifyResponse:
+        """
+        Step 4–5:
+        - OTP verification
+        - PreUser creation (idempotent)
+        """
+
+        # Step 4: Redis-based OTP verification
+        await verify_otp_flow(phone=phone, otp=otp)
+
+        # Step 5: DB backed PreUser creation
+        await create_preuser(
+            db=db,
+            phone=phone,
+        )
+
+        return OTPVerifyResponse(
+            phone=phone,
+            status=OnboardingState.PREUSER_CREATED,
         )
