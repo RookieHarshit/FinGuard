@@ -90,3 +90,18 @@ class PreUser(Base):
         DateTime(timezone=True),
         nullable=True,
     )
+
+    risk_decision: Mapped[Optional[str]] = mapped_column(
+        String(20),
+        nullable=True,
+    )
+
+    risk_reason: Mapped[Optional[str]] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
+    risk_evaluated_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )

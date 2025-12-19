@@ -21,6 +21,9 @@ from app.services.User.preuser_profile import (
     ProfileAlreadyCompleted,
     InvalidPreUserState as ProfileInvalidState,
 )
+from app.domain.risks.evaluate import evaluate_risk, RiskDecision
+from app.repository.user.pre_user import PreUserRepository
+
 
 class UserOnboardingError(Exception):
     pass
@@ -142,3 +145,26 @@ class UserOnboarding:
             raise ProfileAlreadyCompletedError()
         except ProfileInvalidState:
             raise InvalidOnboardingState()
+
+    @staticmethod
+    async def evaluate_risk(
+        *,
+        db: AsyncSession,
+        phone: str,
+        otp_retry_count: int,
+    ) -> str:
+        """
+        Step 8:
+        - Evaluate onboarding risk
+        """
+
+        repo = PreUserRepository()
+        preuser = await repo.get_by_phone(db, phone)
+
+        decision = await evaluate_risk(
+            preuser=preuser,
+            otp_retry_count=otp_retry_count,
+            db=db,
+        )
+
+        return decision
