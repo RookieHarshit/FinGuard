@@ -90,10 +90,11 @@ to keep business rules independent from frameworks and external services.
             L3. Account state guard (LIMITED / FULL)
             L4. Step-up check (PIN / secondary auth)
             L5. Token issuance (scoped access + refresh)
-            L6. L6. Login result contract (auth state, account tier, token payload)
+            L6. Login result contract (auth state, account tier, token payload)
 
 
 Note: KYC, risk evaluation, and external compliance-related components are intentionally mocked or simplified. The goal of this project is to demonstrate backend system design, flow orchestration, and code structure, not to replicate real-world fintech compliance.
+
 
 
 
